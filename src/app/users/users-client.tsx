@@ -291,117 +291,158 @@ export function UsersClient({
         </div>
       </header>
 
-      <DataTable
-        columns={columns}
-        data={pageRows}
-        footer={
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
-              <div className="text-xs text-muted-foreground">
-                {rangeText}
+      <div className="sm:hidden space-y-3">
+        {pageRows.length === 0 ? (
+          <div className="rounded-xl border bg-card p-5">
+            <div className="space-y-1">
+              <p className="text-sm font-medium">No results</p>
+              <p className="text-sm text-muted-foreground">
+                Try a different search or filter.
+              </p>
+            </div>
+          </div>
+        ) : (
+          pageRows.map((u) => (
+            <Link
+              key={u.id}
+              href={`/users/${u.id}${listQueryString ? `?${listQueryString}` : ""}`}
+              className="block rounded-xl border bg-card p-5 transition-colors hover:bg-muted/30"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold">
+                    <span className="text-muted-foreground font-mono mr-2">
+                      {u.id}.
+                    </span>
+                    {u.name}
+                  </div>
+                  <div className="mt-1 text-xs text-muted-foreground break-words">
+                    {u.email}
+                  </div>
+                  <div className="mt-1 text-xs text-muted-foreground break-words">
+                    {u.website}
+                  </div>
+                </div>
+              </div>
+              <div className="mt-3 text-xs text-muted-foreground">
+                {u.postsCount} posts • {u.todosCompleted} done • {u.todosPending} pending
+              </div>
+            </Link>
+          ))
+        )}
+      </div>
+
+      <div className="hidden sm:block">
+        <DataTable
+          columns={columns}
+          data={pageRows}
+          footer={
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+                <div className="text-xs text-muted-foreground">{rangeText}</div>
+
+                <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                  Show
+                  <select
+                    className={cn(
+                      "h-8 rounded-lg border border-input bg-background px-2 text-xs text-foreground shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    )}
+                    value={String(pageSize)}
+                    onChange={(e) => setParam("pageSize", e.target.value)}
+                    aria-label="Rows per page"
+                  >
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                  </select>
+                </label>
               </div>
 
-              <label className="flex items-center gap-2 text-xs text-muted-foreground">
-                Show
-                <select
-                  className={cn(
-                    "h-8 rounded-lg border border-input bg-background px-2 text-xs text-foreground shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              <Pagination className="sm:w-auto sm:justify-end">
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationLink
+                      href={hrefWithParam("page", "1")}
+                      isActive={false}
+                      size="sm"
+                      aria-label="First page"
+                      aria-disabled={page <= 1}
+                      className={cn(page <= 1 ? "pointer-events-none opacity-50" : "")}
+                    >
+                      <span className="sr-only">First page</span>
+                      <ChevronsLeft className="size-4" aria-hidden="true" />
+                    </PaginationLink>
+                  </PaginationItem>
+
+                  <PaginationItem>
+                    <PaginationLink
+                      href={hrefWithParam("page", String(Math.max(1, page - 1)))}
+                      isActive={false}
+                      size="sm"
+                      aria-label="Previous page"
+                      aria-disabled={page <= 1}
+                      className={cn(page <= 1 ? "pointer-events-none opacity-50" : "")}
+                    >
+                      <span className="sr-only">Previous page</span>
+                      <ChevronLeft className="size-4" aria-hidden="true" />
+                    </PaginationLink>
+                  </PaginationItem>
+
+                  {getPageItems(totalPages, page).map((p, idx) =>
+                    p === "ellipsis" ? (
+                      <PaginationItem key={`e-${idx}`}>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    ) : (
+                      <PaginationItem key={p}>
+                        <PaginationLink
+                          href={hrefWithParam("page", String(p))}
+                          isActive={p === page}
+                          size="sm"
+                        >
+                          {p}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ),
                   )}
-                  value={String(pageSize)}
-                  onChange={(e) => setParam("pageSize", e.target.value)}
-                  aria-label="Rows per page"
-                >
-                  <option value="5">5</option>
-                  <option value="10">10</option>
-                  <option value="20">20</option>
-                  <option value="50">50</option>
-                </select>
-              </label>
+
+                  <PaginationItem>
+                    <PaginationLink
+                      href={hrefWithParam(
+                        "page",
+                        String(Math.min(totalPages, page + 1)),
+                      )}
+                      isActive={false}
+                      size="sm"
+                      aria-label="Next page"
+                      aria-disabled={page >= totalPages}
+                      className={cn(page >= totalPages ? "pointer-events-none opacity-50" : "")}
+                    >
+                      <span className="sr-only">Next page</span>
+                      <ChevronRight className="size-4" aria-hidden="true" />
+                    </PaginationLink>
+                  </PaginationItem>
+
+                  <PaginationItem>
+                    <PaginationLink
+                      href={hrefWithParam("page", String(totalPages))}
+                      isActive={false}
+                      size="sm"
+                      aria-label="Last page"
+                      aria-disabled={page >= totalPages}
+                      className={cn(page >= totalPages ? "pointer-events-none opacity-50" : "")}
+                    >
+                      <span className="sr-only">Last page</span>
+                      <ChevronsRight className="size-4" aria-hidden="true" />
+                    </PaginationLink>
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
             </div>
-
-            <Pagination className="sm:w-auto sm:justify-end">
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationLink
-                    href={hrefWithParam("page", "1")}
-                    isActive={false}
-                    size="sm"
-                    aria-label="First page"
-                    aria-disabled={page <= 1}
-                    className={cn(page <= 1 ? "pointer-events-none opacity-50" : "")}
-                  >
-                    <span className="sr-only">First page</span>
-                    <ChevronsLeft className="size-4" aria-hidden="true" />
-                  </PaginationLink>
-                </PaginationItem>
-
-                <PaginationItem>
-                  <PaginationLink
-                    href={hrefWithParam("page", String(Math.max(1, page - 1)))}
-                    isActive={false}
-                    size="sm"
-                    aria-label="Previous page"
-                    aria-disabled={page <= 1}
-                    className={cn(page <= 1 ? "pointer-events-none opacity-50" : "")}
-                  >
-                    <span className="sr-only">Previous page</span>
-                    <ChevronLeft className="size-4" aria-hidden="true" />
-                  </PaginationLink>
-                </PaginationItem>
-
-                {getPageItems(totalPages, page).map((p, idx) =>
-                  p === "ellipsis" ? (
-                    <PaginationItem key={`e-${idx}`}>
-                      <PaginationEllipsis />
-                    </PaginationItem>
-                  ) : (
-                    <PaginationItem key={p}>
-                      <PaginationLink
-                        href={hrefWithParam("page", String(p))}
-                        isActive={p === page}
-                        size="sm"
-                      >
-                        {p}
-                      </PaginationLink>
-                    </PaginationItem>
-                  ),
-                )}
-
-                <PaginationItem>
-                  <PaginationLink
-                    href={hrefWithParam(
-                      "page",
-                      String(Math.min(totalPages, page + 1)),
-                    )}
-                    isActive={false}
-                    size="sm"
-                    aria-label="Next page"
-                    aria-disabled={page >= totalPages}
-                    className={cn(page >= totalPages ? "pointer-events-none opacity-50" : "")}
-                  >
-                    <span className="sr-only">Next page</span>
-                    <ChevronRight className="size-4" aria-hidden="true" />
-                  </PaginationLink>
-                </PaginationItem>
-
-                <PaginationItem>
-                  <PaginationLink
-                    href={hrefWithParam("page", String(totalPages))}
-                    isActive={false}
-                    size="sm"
-                    aria-label="Last page"
-                    aria-disabled={page >= totalPages}
-                    className={cn(page >= totalPages ? "pointer-events-none opacity-50" : "")}
-                  >
-                    <span className="sr-only">Last page</span>
-                    <ChevronsRight className="size-4" aria-hidden="true" />
-                  </PaginationLink>
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          </div>
-        }
-      />
+          }
+        />
+      </div>
     </div>
   );
 }
