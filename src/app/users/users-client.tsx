@@ -74,7 +74,7 @@ type SortMode =
   | "website-asc"
   | "website-desc"
   | "pending-desc";
-type FilterMode = "all" | "has-pending";
+type FilterMode = "all" | "has-pending" | "no-completed";
 
 export type UserRow = {
   id: number;
@@ -138,10 +138,12 @@ export function UsersClient({
       normalizedQ.length === 0
         ? rows
         : rows.filter((r) =>
-            `${r.name} ${r.email}`.toLowerCase().includes(normalizedQ),
+            `${r.name} ${r.email} ${r.website}`.toLowerCase().includes(normalizedQ),
           );
 
-    return filter === "has-pending" ? base.filter((r) => r.todosPending > 0) : base;
+    if (filter === "has-pending") return base.filter((r) => r.todosPending > 0);
+    if (filter === "no-completed") return base.filter((r) => r.todosCompleted === 0);
+    return base;
   }, [rows, normalizedQ, filter]);
 
   const sortedRows = React.useMemo(() => {
@@ -271,14 +273,21 @@ export function UsersClient({
             className="sm:w-[280px]"
           />
 
-          <div className="flex gap-2">
-            <Button
-              variant={filter === "has-pending" ? "secondary" : "outline"}
-              onClick={() => setParam("filter", filter === "has-pending" ? "all" : "has-pending")}
+          <label className="flex items-center gap-2 text-xs text-muted-foreground">
+            Filter
+            <select
+              className={cn(
+                "h-9 rounded-lg border border-input bg-background px-2 text-xs text-foreground shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              )}
+              value={filter}
+              onChange={(e) => setParam("filter", e.target.value)}
+              aria-label="Filter users"
             >
-              Has pending todos
-            </Button>
-          </div>
+              <option value="all">All users</option>
+              <option value="has-pending">Users with pending todos</option>
+              <option value="no-completed">Users with no completed todos</option>
+            </select>
+          </label>
         </div>
       </header>
 

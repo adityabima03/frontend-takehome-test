@@ -39,6 +39,7 @@ pnpm test
 - Enrich activity signals dari:
   - `https://jsonplaceholder.typicode.com/posts`
   - `https://jsonplaceholder.typicode.com/todos`
+- Setiap row user menampilkan activity signals (derived): total posts, completed todos, dan pending todos.
 - Search (client-side) by name/email
 - Filter tambahan: hanya user dengan pending todos (`filter=has-pending`)
 - Sort:
