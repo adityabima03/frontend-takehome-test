@@ -5,20 +5,69 @@ import type { ColumnDef } from "@tanstack/react-table";
 
 import type { UserRow } from "@/app/users/users-client";
 import { Button } from "@/components/ui/button";
+import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 
 export function createUsersColumns(params: {
   listQueryString: string;
   onToggleNameSort: () => void;
+  onToggleEmailSort: () => void;
+  onToggleWebsiteSort: () => void;
   onTogglePendingSort: () => void;
-  nameSortLabel: string;
-  pendingSortLabel: string;
+  activeSort:
+    | "name-asc"
+    | "name-desc"
+    | "email-asc"
+    | "email-desc"
+    | "website-asc"
+    | "website-desc"
+    | "pending-desc";
 }): ColumnDef<UserRow>[] {
+  const nameIcon =
+    params.activeSort === "name-asc" ? (
+      <ArrowUp className="size-3.5" aria-hidden="true" />
+    ) : params.activeSort === "name-desc" ? (
+      <ArrowDown className="size-3.5" aria-hidden="true" />
+    ) : (
+      <ArrowUpDown className="size-3.5 opacity-60" aria-hidden="true" />
+    );
+
+  const pendingIcon =
+    params.activeSort === "pending-desc" ? (
+      <ArrowDown className="size-3.5" aria-hidden="true" />
+    ) : (
+      <ArrowUpDown className="size-3.5 opacity-60" aria-hidden="true" />
+    );
+
+  const emailIcon =
+    params.activeSort === "email-asc" ? (
+      <ArrowUp className="size-3.5" aria-hidden="true" />
+    ) : params.activeSort === "email-desc" ? (
+      <ArrowDown className="size-3.5" aria-hidden="true" />
+    ) : (
+      <ArrowUpDown className="size-3.5 opacity-60" aria-hidden="true" />
+    );
+
+  const websiteIcon =
+    params.activeSort === "website-asc" ? (
+      <ArrowUp className="size-3.5" aria-hidden="true" />
+    ) : params.activeSort === "website-desc" ? (
+      <ArrowDown className="size-3.5" aria-hidden="true" />
+    ) : (
+      <ArrowUpDown className="size-3.5 opacity-60" aria-hidden="true" />
+    );
+
   return [
     {
       accessorKey: "name",
       header: () => (
-        <Button variant="ghost" size="sm" onClick={params.onToggleNameSort}>
-          Name <span className="ml-1 text-muted-foreground">{params.nameSortLabel}</span>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={params.onToggleNameSort}
+          aria-label="Sort by name"
+          className="-ml-2 gap-2"
+        >
+          Name {nameIcon}
         </Button>
       ),
       cell: ({ row }) => {
@@ -35,7 +84,17 @@ export function createUsersColumns(params: {
     },
     {
       accessorKey: "email",
-      header: "Email",
+      header: () => (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={params.onToggleEmailSort}
+          aria-label="Sort by email"
+          className="-ml-2 gap-2"
+        >
+          Email {emailIcon}
+        </Button>
+      ),
       cell: ({ row }) => (
         <a
           href={`mailto:${row.original.email}`}
@@ -47,7 +106,17 @@ export function createUsersColumns(params: {
     },
     {
       accessorKey: "website",
-      header: "Website",
+      header: () => (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={params.onToggleWebsiteSort}
+          aria-label="Sort by website"
+          className="-ml-2 gap-2"
+        >
+          Website {websiteIcon}
+        </Button>
+      ),
       cell: ({ row }) => (
         <a
           href={`https://${row.original.website}`}
@@ -62,9 +131,14 @@ export function createUsersColumns(params: {
     {
       accessorKey: "activity",
       header: () => (
-        <Button variant="ghost" size="sm" onClick={params.onTogglePendingSort}>
-          Activity{" "}
-          <span className="ml-1 text-muted-foreground">{params.pendingSortLabel}</span>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={params.onTogglePendingSort}
+          aria-label="Sort by pending todos"
+          className="-ml-2 gap-2"
+        >
+          Activity {pendingIcon}
         </Button>
       ),
       cell: ({ row }) => (

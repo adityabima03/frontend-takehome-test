@@ -64,7 +64,14 @@ function clampInt(value: string | null, { min, max, fallback }: { min: number; m
   return i;
 }
 
-type SortMode = "name-asc" | "name-desc" | "pending-desc";
+type SortMode =
+  | "name-asc"
+  | "name-desc"
+  | "email-asc"
+  | "email-desc"
+  | "website-asc"
+  | "website-desc"
+  | "pending-desc";
 type FilterMode = "all" | "has-pending";
 
 export type UserRow = {
@@ -139,6 +146,10 @@ export function UsersClient({
     const next = [...filteredRows];
     if (sort === "name-asc") next.sort((a, b) => a.name.localeCompare(b.name));
     else if (sort === "name-desc") next.sort((a, b) => b.name.localeCompare(a.name));
+    else if (sort === "email-asc") next.sort((a, b) => a.email.localeCompare(b.email));
+    else if (sort === "email-desc") next.sort((a, b) => b.email.localeCompare(a.email));
+    else if (sort === "website-asc") next.sort((a, b) => a.website.localeCompare(b.website));
+    else if (sort === "website-desc") next.sort((a, b) => b.website.localeCompare(a.website));
     else
       next.sort((a, b) => {
         const cmp = b.todosPending - a.todosPending;
@@ -211,15 +222,23 @@ export function UsersClient({
     setParam("sort", sort === "pending-desc" ? "name-asc" : "pending-desc");
   }
 
+  function toggleEmailSort() {
+    setParam("sort", sort === "email-asc" ? "email-desc" : "email-asc");
+  }
+
+  function toggleWebsiteSort() {
+    setParam("sort", sort === "website-asc" ? "website-desc" : "website-asc");
+  }
+
   const columns = React.useMemo(
     () =>
       createUsersColumns({
         listQueryString,
         onToggleNameSort: toggleNameSort,
+        onToggleEmailSort: toggleEmailSort,
+        onToggleWebsiteSort: toggleWebsiteSort,
         onTogglePendingSort: togglePendingSort,
-        nameSortLabel:
-          sort === "name-asc" ? "A–Z" : sort === "name-desc" ? "Z–A" : "",
-        pendingSortLabel: sort === "pending-desc" ? "pending" : "",
+        activeSort: sort,
       }),
     [listQueryString, sort],
   );
@@ -249,12 +268,6 @@ export function UsersClient({
               onClick={() => setParam("filter", filter === "has-pending" ? "all" : "has-pending")}
             >
               Pending todos
-            </Button>
-            <Button variant="outline" onClick={toggleNameSort}>
-              Sort: Name ({sort === "name-desc" ? "Z–A" : "A–Z"})
-            </Button>
-            <Button variant="outline" onClick={togglePendingSort}>
-              Sort: Pending ({sort === "pending-desc" ? "on" : "off"})
             </Button>
           </div>
         </div>
