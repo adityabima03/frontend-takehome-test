@@ -26,10 +26,12 @@ export function DataTable<TData, TValue>({
   columns,
   data,
   emptyState,
+  footer,
 }: {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   emptyState?: React.ReactNode;
+  footer?: React.ReactNode;
 }) {
   const table = useReactTable({
     data,
@@ -83,6 +85,7 @@ export function DataTable<TData, TValue>({
           )}
         </TableBody>
       </Table>
+      {footer ? <div className="border-t px-4 py-3">{footer}</div> : null}
     </div>
   );
 }

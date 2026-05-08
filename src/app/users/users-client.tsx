@@ -223,51 +223,56 @@ export function UsersClient({
       <DataTable
         columns={columns}
         data={pageRows}
-      />
+        footer={
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+              <div className="text-xs text-muted-foreground">
+                Showing {pageRows.length} of {sortedRows.length} results (page {page} of{" "}
+                {totalPages})
+              </div>
 
-      <footer className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
-          <div className="text-xs text-muted-foreground">
-            Showing {pageRows.length} of {sortedRows.length} results (page {page} of{" "}
-            {totalPages})
+              <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                Rows per page
+                <select
+                  className={cn(
+                    "h-8 rounded-lg border border-input bg-background px-2 text-xs text-foreground shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  )}
+                  value={String(pageSize)}
+                  onChange={(e) => setParam("pageSize", e.target.value)}
+                  aria-label="Rows per page"
+                >
+                  <option value="5">5</option>
+                  <option value="10">10</option>
+                  <option value="20">20</option>
+                  <option value="50">50</option>
+                </select>
+              </label>
+            </div>
+
+            <div className="flex items-center justify-between gap-2 sm:justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page <= 1}
+                onClick={() => setParam("page", String(page - 1))}
+              >
+                Prev
+              </Button>
+              <div className="min-w-14 text-center text-xs text-muted-foreground">
+                Page {page}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page >= totalPages}
+                onClick={() => setParam("page", String(page + 1))}
+              >
+                Next
+              </Button>
+            </div>
           </div>
-
-          <label className="flex items-center gap-2 text-xs text-muted-foreground">
-            Rows per page
-            <select
-              className={cn(
-                "h-8 rounded-lg border border-input bg-background px-2 text-xs text-foreground shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-              )}
-              value={String(pageSize)}
-              onChange={(e) => setParam("pageSize", e.target.value)}
-              aria-label="Rows per page"
-            >
-              <option value="5">5</option>
-              <option value="10">10</option>
-              <option value="20">20</option>
-              <option value="50">50</option>
-            </select>
-          </label>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            disabled={page <= 1}
-            onClick={() => setParam("page", String(page - 1))}
-          >
-            Prev
-          </Button>
-          <div className="text-xs text-muted-foreground">Page {page}</div>
-          <Button
-            variant="outline"
-            disabled={page >= totalPages}
-            onClick={() => setParam("page", String(page + 1))}
-          >
-            Next
-          </Button>
-        </div>
-      </footer>
+        }
+      />
     </div>
   );
 }
