@@ -4,12 +4,8 @@ import * as React from "react";
 import {
   flexRender,
   getCoreRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
   useReactTable,
   type ColumnDef,
-  type PaginationState,
-  type SortingState,
 } from "@tanstack/react-table";
 
 import {
@@ -22,45 +18,23 @@ import {
 } from "@/components/ui/table";
 
 export type DataTableState = {
-  sorting: SortingState;
-  pagination: PaginationState;
+  // reserved for future extensions
+  _unused?: never;
 };
 
 export function DataTable<TData, TValue>({
   columns,
   data,
-  state,
-  onStateChange,
   emptyState,
 }: {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  state: DataTableState;
-  onStateChange: (next: DataTableState) => void;
   emptyState?: React.ReactNode;
 }) {
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    onSortingChange: (updater) => {
-      const nextSorting =
-        typeof updater === "function" ? updater(state.sorting) : updater;
-      onStateChange({ ...state, sorting: nextSorting });
-    },
-    onPaginationChange: (updater) => {
-      const nextPagination =
-        typeof updater === "function" ? updater(state.pagination) : updater;
-      onStateChange({ ...state, pagination: nextPagination });
-    },
-    state: {
-      sorting: state.sorting,
-      pagination: state.pagination,
-    },
-    manualPagination: false,
-    manualSorting: false,
   });
 
   return (

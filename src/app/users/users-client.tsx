@@ -5,7 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
-import { DataTable, type DataTableState } from "@/components/ui/data-table";
+import { DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 import type { Post, Todo, User } from "@/lib/jsonplaceholder";
 import { cn } from "@/lib/utils";
@@ -127,7 +127,19 @@ export function UsersClient({
     return filter === "has-pending" ? base.filter((r) => r.todosPending > 0) : base;
   }, [rows, normalizedQ, filter]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
+  const sortedRows = React.useMemo(() => {
+    const next = [...filteredRows];
+    if (sort === "name-asc") next.sort((a, b) => a.name.localeCompare(b.name));
+    else if (sort === "name-desc") next.sort((a, b) => b.name.localeCompare(a.name));
+    else
+      next.sort((a, b) => {
+        const cmp = b.todosPending - a.todosPending;
+        return cmp !== 0 ? cmp : a.name.localeCompare(b.name);
+      });
+    return next;
+  }, [filteredRows, sort]);
+
+  const totalPages = Math.max(1, Math.ceil(sortedRows.length / pageSize));
   const page = clampInt(searchParams.get("page"), {
     min: 1,
     max: totalPages,
@@ -139,39 +151,14 @@ export function UsersClient({
     if (value === null || value.length === 0) next.delete(key);
     else next.set(key, value);
     if (key !== "page") next.set("page", "1");
-    router.replace(`${pathname}?${next.toString()}`);
+    router.push(`${pathname}?${next.toString()}`, { scroll: false });
   }
 
   const listQueryString = searchParams.toString();
-
-  const sorting = React.useMemo(() => {
-    if (sort === "name-asc") return [{ id: "name", desc: false }];
-    if (sort === "name-desc") return [{ id: "name", desc: true }];
-    return [{ id: "activity", desc: true }];
-  }, [sort]);
-
-  const tableState: DataTableState = React.useMemo(
-    () => ({
-      sorting,
-      pagination: {
-        pageIndex: page - 1,
-        pageSize,
-      },
-    }),
-    [sorting, page, pageSize],
-  );
-
-  function onTableStateChange(next: DataTableState) {
-    const nextPage = next.pagination.pageIndex + 1;
-    const nextPageSize = next.pagination.pageSize;
-
-    // Update pageSize first (resets page to 1 by setParam behavior)
-    if (nextPageSize !== pageSize) {
-      setParam("pageSize", String(nextPageSize));
-      return;
-    }
-    if (nextPage !== page) setParam("page", String(nextPage));
-  }
+  const pageRows = React.useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return sortedRows.slice(start, start + pageSize);
+  }, [sortedRows, page, pageSize]);
 
   function toggleNameSort() {
     setParam(
@@ -235,16 +222,13 @@ export function UsersClient({
 
       <DataTable
         columns={columns}
-        data={filteredRows}
-        state={tableState}
-        onStateChange={onTableStateChange}
+        data={pageRows}
       />
 
       <footer className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
           <div className="text-xs text-muted-foreground">
-            Showing {Math.min(pageSize, Math.max(0, filteredRows.length - (page - 1) * pageSize))}{" "}
-            of {filteredRows.length} results (page {page} of{" "}
+            Showing {pageRows.length} of {sortedRows.length} results (page {page} of{" "}
             {totalPages})
           </div>
 
