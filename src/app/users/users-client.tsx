@@ -65,6 +65,8 @@ function clampInt(value: string | null, { min, max, fallback }: { min: number; m
 }
 
 type SortMode =
+  | "id-asc"
+  | "id-desc"
   | "name-asc"
   | "name-desc"
   | "email-asc"
@@ -100,7 +102,7 @@ export function UsersClient({
   const signals = React.useMemo(() => buildSignals(posts, todos), [posts, todos]);
 
   const q = searchParams.get("q") ?? "";
-  const sort = (searchParams.get("sort") as SortMode) ?? "name-asc";
+  const sort = (searchParams.get("sort") as SortMode) ?? "id-asc";
   const filter = (searchParams.get("filter") as FilterMode) ?? "all";
   const pageSize = clampInt(searchParams.get("pageSize"), {
     min: 5,
@@ -144,7 +146,9 @@ export function UsersClient({
 
   const sortedRows = React.useMemo(() => {
     const next = [...filteredRows];
-    if (sort === "name-asc") next.sort((a, b) => a.name.localeCompare(b.name));
+    if (sort === "id-asc") next.sort((a, b) => a.id - b.id);
+    else if (sort === "id-desc") next.sort((a, b) => b.id - a.id);
+    else if (sort === "name-asc") next.sort((a, b) => a.name.localeCompare(b.name));
     else if (sort === "name-desc") next.sort((a, b) => b.name.localeCompare(a.name));
     else if (sort === "email-asc") next.sort((a, b) => a.email.localeCompare(b.email));
     else if (sort === "email-desc") next.sort((a, b) => b.email.localeCompare(a.email));
@@ -211,15 +215,19 @@ export function UsersClient({
     return `${start}-${end} of ${total}`;
   }, [sortedRows.length, page, pageSize]);
 
+  function toggleIdSort() {
+    setParam("sort", sort === "id-asc" ? "id-desc" : "id-asc");
+  }
+
   function toggleNameSort() {
     setParam(
       "sort",
-      sort === "name-asc" ? "name-desc" : sort === "name-desc" ? "name-asc" : "name-asc",
+      sort === "name-asc" ? "name-desc" : "name-asc",
     );
   }
 
   function togglePendingSort() {
-    setParam("sort", sort === "pending-desc" ? "name-asc" : "pending-desc");
+    setParam("sort", sort === "pending-desc" ? "id-asc" : "pending-desc");
   }
 
   function toggleEmailSort() {
@@ -234,6 +242,7 @@ export function UsersClient({
     () =>
       createUsersColumns({
         listQueryString,
+        onToggleIdSort: toggleIdSort,
         onToggleNameSort: toggleNameSort,
         onToggleEmailSort: toggleEmailSort,
         onToggleWebsiteSort: toggleWebsiteSort,

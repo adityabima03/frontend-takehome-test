@@ -9,11 +9,14 @@ import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 
 export function createUsersColumns(params: {
   listQueryString: string;
+  onToggleIdSort: () => void;
   onToggleNameSort: () => void;
   onToggleEmailSort: () => void;
   onToggleWebsiteSort: () => void;
   onTogglePendingSort: () => void;
   activeSort:
+    | "id-asc"
+    | "id-desc"
     | "name-asc"
     | "name-desc"
     | "email-asc"
@@ -22,6 +25,15 @@ export function createUsersColumns(params: {
     | "website-desc"
     | "pending-desc";
 }): ColumnDef<UserRow>[] {
+  const idIcon =
+    params.activeSort === "id-asc" ? (
+      <ArrowUp className="size-3.5" aria-hidden="true" />
+    ) : params.activeSort === "id-desc" ? (
+      <ArrowDown className="size-3.5" aria-hidden="true" />
+    ) : (
+      <ArrowUpDown className="size-3.5 opacity-60" aria-hidden="true" />
+    );
+
   const nameIcon =
     params.activeSort === "name-asc" ? (
       <ArrowUp className="size-3.5" aria-hidden="true" />
@@ -57,6 +69,25 @@ export function createUsersColumns(params: {
     );
 
   return [
+    {
+      accessorKey: "id",
+      header: () => (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={params.onToggleIdSort}
+          aria-label="Sort by id"
+          className="-ml-2 gap-2"
+        >
+          No {idIcon}
+        </Button>
+      ),
+      cell: ({ row }) => (
+        <span className="font-mono text-xs text-muted-foreground">
+          {row.original.id}
+        </span>
+      ),
+    },
     {
       accessorKey: "name",
       header: () => (
