@@ -7,6 +7,14 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+} from "@/components/ui/pagination";
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import type { Post, Todo, User } from "@/lib/jsonplaceholder";
 import { cn } from "@/lib/utils";
 import { createUsersColumns } from "./columns";
@@ -154,11 +162,43 @@ export function UsersClient({
     router.push(`${pathname}?${next.toString()}`, { scroll: false });
   }
 
+  function hrefWithParam(key: string, value: string) {
+    const next = new URLSearchParams(searchParams.toString());
+    next.set(key, value);
+    return `${pathname}?${next.toString()}`;
+  }
+
+  function getPageItems(total: number, current: number) {
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+
+    const items: Array<number | "ellipsis"> = [];
+    const add = (v: number | "ellipsis") => items.push(v);
+
+    add(1);
+    const start = Math.max(2, current - 1);
+    const end = Math.min(total - 1, current + 1);
+
+    if (start > 2) add("ellipsis");
+    for (let p = start; p <= end; p++) add(p);
+    if (end < total - 1) add("ellipsis");
+    add(total);
+
+    return items;
+  }
+
   const listQueryString = searchParams.toString();
   const pageRows = React.useMemo(() => {
     const start = (page - 1) * pageSize;
     return sortedRows.slice(start, start + pageSize);
   }, [sortedRows, page, pageSize]);
+
+  const rangeText = React.useMemo(() => {
+    const total = sortedRows.length;
+    if (total === 0) return "0-0 of 0";
+    const start = (page - 1) * pageSize + 1;
+    const end = Math.min(page * pageSize, total);
+    return `${start}-${end} of ${total}`;
+  }, [sortedRows.length, page, pageSize]);
 
   function toggleNameSort() {
     setParam(
@@ -227,12 +267,11 @@ export function UsersClient({
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
               <div className="text-xs text-muted-foreground">
-                Showing {pageRows.length} of {sortedRows.length} results (page {page} of{" "}
-                {totalPages})
+                {rangeText}
               </div>
 
               <label className="flex items-center gap-2 text-xs text-muted-foreground">
-                Rows per page
+                Show
                 <select
                   className={cn(
                     "h-8 rounded-lg border border-input bg-background px-2 text-xs text-foreground shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
@@ -249,27 +288,86 @@ export function UsersClient({
               </label>
             </div>
 
-            <div className="flex items-center justify-between gap-2 sm:justify-end">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={page <= 1}
-                onClick={() => setParam("page", String(page - 1))}
-              >
-                Prev
-              </Button>
-              <div className="min-w-14 text-center text-xs text-muted-foreground">
-                Page {page}
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={page >= totalPages}
-                onClick={() => setParam("page", String(page + 1))}
-              >
-                Next
-              </Button>
-            </div>
+            <Pagination className="sm:w-auto sm:justify-end">
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationLink
+                    href={hrefWithParam("page", "1")}
+                    isActive={false}
+                    size="sm"
+                    aria-label="First page"
+                    aria-disabled={page <= 1}
+                    className={cn(page <= 1 ? "pointer-events-none opacity-50" : "")}
+                  >
+                    <span className="sr-only">First page</span>
+                    <ChevronsLeft className="size-4" aria-hidden="true" />
+                  </PaginationLink>
+                </PaginationItem>
+
+                <PaginationItem>
+                  <PaginationLink
+                    href={hrefWithParam("page", String(Math.max(1, page - 1)))}
+                    isActive={false}
+                    size="sm"
+                    aria-label="Previous page"
+                    aria-disabled={page <= 1}
+                    className={cn(page <= 1 ? "pointer-events-none opacity-50" : "")}
+                  >
+                    <span className="sr-only">Previous page</span>
+                    <ChevronLeft className="size-4" aria-hidden="true" />
+                  </PaginationLink>
+                </PaginationItem>
+
+                {getPageItems(totalPages, page).map((p, idx) =>
+                  p === "ellipsis" ? (
+                    <PaginationItem key={`e-${idx}`}>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  ) : (
+                    <PaginationItem key={p}>
+                      <PaginationLink
+                        href={hrefWithParam("page", String(p))}
+                        isActive={p === page}
+                        size="sm"
+                      >
+                        {p}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ),
+                )}
+
+                <PaginationItem>
+                  <PaginationLink
+                    href={hrefWithParam(
+                      "page",
+                      String(Math.min(totalPages, page + 1)),
+                    )}
+                    isActive={false}
+                    size="sm"
+                    aria-label="Next page"
+                    aria-disabled={page >= totalPages}
+                    className={cn(page >= totalPages ? "pointer-events-none opacity-50" : "")}
+                  >
+                    <span className="sr-only">Next page</span>
+                    <ChevronRight className="size-4" aria-hidden="true" />
+                  </PaginationLink>
+                </PaginationItem>
+
+                <PaginationItem>
+                  <PaginationLink
+                    href={hrefWithParam("page", String(totalPages))}
+                    isActive={false}
+                    size="sm"
+                    aria-label="Last page"
+                    aria-disabled={page >= totalPages}
+                    className={cn(page >= totalPages ? "pointer-events-none opacity-50" : "")}
+                  >
+                    <span className="sr-only">Last page</span>
+                    <ChevronsRight className="size-4" aria-hidden="true" />
+                  </PaginationLink>
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
           </div>
         }
       />
