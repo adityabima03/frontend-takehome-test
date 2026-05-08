@@ -1,24 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Next.js Users Workspace
+
+Aplikasi Next.js (App Router) + TypeScript untuk menampilkan dan mengeksplor data users.
+
+## Tech Stack
+
+- Next.js (App Router) + TypeScript
+- Styling: Tailwind CSS + shadcn/ui (Base UI style)
+- Data fetching: Next `fetch` (Server Component) dengan ISR
+- Testing (unit): Jest + React Testing Library
 
 ## Getting Started
 
-First, run the development server:
+Project ini memakai **pnpm**.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Buka `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+pnpm dev
+pnpm build
+pnpm test
+```
+
+## Routes
+
+- `/`: halaman awal (template)
+- `/users`: users list + activity signals + filter/sort + pagination
+
+## Fitur `/users`
+
+- Fetch users dari `https://jsonplaceholder.typicode.com/users`
+- Enrich activity signals dari:
+  - `https://jsonplaceholder.typicode.com/posts`
+  - `https://jsonplaceholder.typicode.com/todos`
+- Setiap row user menampilkan activity signals (derived): total posts, completed todos, dan pending todos.
+- Search (client-side) by name/email
+- Filter tambahan: hanya user dengan pending todos (`filter=has-pending`)
+- Sort:
+  - by name (`sort=name-asc` / `sort=name-desc`)
+  - by most pending (`sort=pending-desc`)
+- Pagination + page size:
+  - `page` (1-based)
+  - `pageSize` (5/10/20/50)
+- State disimpan di query string supaya tidak “hilang” saat refresh / back-forward.
+
+## Caching (ISR)
+
+Data `/users` menggunakan `fetch({ next: { revalidate: 60 } })` sehingga cache revalidate setiap **60 detik**.
+
+## Font
+
+Project ini memakai font bawaan template Next (`Geist` via `next/font`).
 
 ## Learn More
 

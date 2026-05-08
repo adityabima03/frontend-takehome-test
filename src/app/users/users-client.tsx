@@ -7,6 +7,14 @@ import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+} from "@/components/ui/pagination";
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import type { Post, Todo, User } from "@/lib/jsonplaceholder";
 import { cn } from "@/lib/utils";
 import { createUsersColumns } from "./columns";
@@ -56,8 +64,17 @@ function clampInt(value: string | null, { min, max, fallback }: { min: number; m
   return i;
 }
 
-type SortMode = "name-asc" | "name-desc" | "pending-desc";
-type FilterMode = "all" | "has-pending";
+type SortMode =
+  | "id-asc"
+  | "id-desc"
+  | "name-asc"
+  | "name-desc"
+  | "email-asc"
+  | "email-desc"
+  | "website-asc"
+  | "website-desc"
+  | "pending-desc";
+type FilterMode = "all" | "has-pending" | "no-completed";
 
 export type UserRow = {
   id: number;
@@ -85,7 +102,7 @@ export function UsersClient({
   const signals = React.useMemo(() => buildSignals(posts, todos), [posts, todos]);
 
   const q = searchParams.get("q") ?? "";
-  const sort = (searchParams.get("sort") as SortMode) ?? "name-asc";
+  const sort = (searchParams.get("sort") as SortMode) ?? "id-asc";
   const filter = (searchParams.get("filter") as FilterMode) ?? "all";
   const pageSize = clampInt(searchParams.get("pageSize"), {
     min: 5,
@@ -121,16 +138,24 @@ export function UsersClient({
       normalizedQ.length === 0
         ? rows
         : rows.filter((r) =>
-            `${r.name} ${r.email}`.toLowerCase().includes(normalizedQ),
+            `${r.name} ${r.email} ${r.website}`.toLowerCase().includes(normalizedQ),
           );
 
-    return filter === "has-pending" ? base.filter((r) => r.todosPending > 0) : base;
+    if (filter === "has-pending") return base.filter((r) => r.todosPending > 0);
+    if (filter === "no-completed") return base.filter((r) => r.todosCompleted === 0);
+    return base;
   }, [rows, normalizedQ, filter]);
 
   const sortedRows = React.useMemo(() => {
     const next = [...filteredRows];
-    if (sort === "name-asc") next.sort((a, b) => a.name.localeCompare(b.name));
+    if (sort === "id-asc") next.sort((a, b) => a.id - b.id);
+    else if (sort === "id-desc") next.sort((a, b) => b.id - a.id);
+    else if (sort === "name-asc") next.sort((a, b) => a.name.localeCompare(b.name));
     else if (sort === "name-desc") next.sort((a, b) => b.name.localeCompare(a.name));
+    else if (sort === "email-asc") next.sort((a, b) => a.email.localeCompare(b.email));
+    else if (sort === "email-desc") next.sort((a, b) => b.email.localeCompare(a.email));
+    else if (sort === "website-asc") next.sort((a, b) => a.website.localeCompare(b.website));
+    else if (sort === "website-desc") next.sort((a, b) => b.website.localeCompare(a.website));
     else
       next.sort((a, b) => {
         const cmp = b.todosPending - a.todosPending;
@@ -154,32 +179,77 @@ export function UsersClient({
     router.push(`${pathname}?${next.toString()}`, { scroll: false });
   }
 
+  function hrefWithParam(key: string, value: string) {
+    const next = new URLSearchParams(searchParams.toString());
+    next.set(key, value);
+    return `${pathname}?${next.toString()}`;
+  }
+
+  function getPageItems(total: number, current: number) {
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+
+    const items: Array<number | "ellipsis"> = [];
+    const add = (v: number | "ellipsis") => items.push(v);
+
+    add(1);
+    const start = Math.max(2, current - 1);
+    const end = Math.min(total - 1, current + 1);
+
+    if (start > 2) add("ellipsis");
+    for (let p = start; p <= end; p++) add(p);
+    if (end < total - 1) add("ellipsis");
+    add(total);
+
+    return items;
+  }
+
   const listQueryString = searchParams.toString();
   const pageRows = React.useMemo(() => {
     const start = (page - 1) * pageSize;
     return sortedRows.slice(start, start + pageSize);
   }, [sortedRows, page, pageSize]);
 
+  const rangeText = React.useMemo(() => {
+    const total = sortedRows.length;
+    if (total === 0) return "0-0 of 0";
+    const start = (page - 1) * pageSize + 1;
+    const end = Math.min(page * pageSize, total);
+    return `${start}-${end} of ${total}`;
+  }, [sortedRows.length, page, pageSize]);
+
+  function toggleIdSort() {
+    setParam("sort", sort === "id-asc" ? "id-desc" : "id-asc");
+  }
+
   function toggleNameSort() {
     setParam(
       "sort",
-      sort === "name-asc" ? "name-desc" : sort === "name-desc" ? "name-asc" : "name-asc",
+      sort === "name-asc" ? "name-desc" : "name-asc",
     );
   }
 
   function togglePendingSort() {
-    setParam("sort", sort === "pending-desc" ? "name-asc" : "pending-desc");
+    setParam("sort", sort === "pending-desc" ? "id-asc" : "pending-desc");
+  }
+
+  function toggleEmailSort() {
+    setParam("sort", sort === "email-asc" ? "email-desc" : "email-asc");
+  }
+
+  function toggleWebsiteSort() {
+    setParam("sort", sort === "website-asc" ? "website-desc" : "website-asc");
   }
 
   const columns = React.useMemo(
     () =>
       createUsersColumns({
         listQueryString,
+        onToggleIdSort: toggleIdSort,
         onToggleNameSort: toggleNameSort,
+        onToggleEmailSort: toggleEmailSort,
+        onToggleWebsiteSort: toggleWebsiteSort,
         onTogglePendingSort: togglePendingSort,
-        nameSortLabel:
-          sort === "name-asc" ? "A–Z" : sort === "name-desc" ? "Z–A" : "",
-        pendingSortLabel: sort === "pending-desc" ? "pending" : "",
+        activeSort: sort,
       }),
     [listQueryString, sort],
   );
@@ -203,20 +273,21 @@ export function UsersClient({
             className="sm:w-[280px]"
           />
 
-          <div className="flex gap-2">
-            <Button
-              variant={filter === "has-pending" ? "secondary" : "outline"}
-              onClick={() => setParam("filter", filter === "has-pending" ? "all" : "has-pending")}
+          <label className="flex items-center gap-2 text-xs text-muted-foreground">
+            Filter
+            <select
+              className={cn(
+                "h-9 rounded-lg border border-input bg-background px-2 text-xs text-foreground shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              )}
+              value={filter}
+              onChange={(e) => setParam("filter", e.target.value)}
+              aria-label="Filter users"
             >
-              Pending todos
-            </Button>
-            <Button variant="outline" onClick={toggleNameSort}>
-              Sort: Name ({sort === "name-desc" ? "Z–A" : "A–Z"})
-            </Button>
-            <Button variant="outline" onClick={togglePendingSort}>
-              Sort: Pending ({sort === "pending-desc" ? "on" : "off"})
-            </Button>
-          </div>
+              <option value="all">All users</option>
+              <option value="has-pending">Users with pending todos</option>
+              <option value="no-completed">Users with no completed todos</option>
+            </select>
+          </label>
         </div>
       </header>
 
@@ -227,12 +298,11 @@ export function UsersClient({
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
               <div className="text-xs text-muted-foreground">
-                Showing {pageRows.length} of {sortedRows.length} results (page {page} of{" "}
-                {totalPages})
+                {rangeText}
               </div>
 
               <label className="flex items-center gap-2 text-xs text-muted-foreground">
-                Rows per page
+                Show
                 <select
                   className={cn(
                     "h-8 rounded-lg border border-input bg-background px-2 text-xs text-foreground shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
@@ -249,27 +319,86 @@ export function UsersClient({
               </label>
             </div>
 
-            <div className="flex items-center justify-between gap-2 sm:justify-end">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={page <= 1}
-                onClick={() => setParam("page", String(page - 1))}
-              >
-                Prev
-              </Button>
-              <div className="min-w-14 text-center text-xs text-muted-foreground">
-                Page {page}
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={page >= totalPages}
-                onClick={() => setParam("page", String(page + 1))}
-              >
-                Next
-              </Button>
-            </div>
+            <Pagination className="sm:w-auto sm:justify-end">
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationLink
+                    href={hrefWithParam("page", "1")}
+                    isActive={false}
+                    size="sm"
+                    aria-label="First page"
+                    aria-disabled={page <= 1}
+                    className={cn(page <= 1 ? "pointer-events-none opacity-50" : "")}
+                  >
+                    <span className="sr-only">First page</span>
+                    <ChevronsLeft className="size-4" aria-hidden="true" />
+                  </PaginationLink>
+                </PaginationItem>
+
+                <PaginationItem>
+                  <PaginationLink
+                    href={hrefWithParam("page", String(Math.max(1, page - 1)))}
+                    isActive={false}
+                    size="sm"
+                    aria-label="Previous page"
+                    aria-disabled={page <= 1}
+                    className={cn(page <= 1 ? "pointer-events-none opacity-50" : "")}
+                  >
+                    <span className="sr-only">Previous page</span>
+                    <ChevronLeft className="size-4" aria-hidden="true" />
+                  </PaginationLink>
+                </PaginationItem>
+
+                {getPageItems(totalPages, page).map((p, idx) =>
+                  p === "ellipsis" ? (
+                    <PaginationItem key={`e-${idx}`}>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  ) : (
+                    <PaginationItem key={p}>
+                      <PaginationLink
+                        href={hrefWithParam("page", String(p))}
+                        isActive={p === page}
+                        size="sm"
+                      >
+                        {p}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ),
+                )}
+
+                <PaginationItem>
+                  <PaginationLink
+                    href={hrefWithParam(
+                      "page",
+                      String(Math.min(totalPages, page + 1)),
+                    )}
+                    isActive={false}
+                    size="sm"
+                    aria-label="Next page"
+                    aria-disabled={page >= totalPages}
+                    className={cn(page >= totalPages ? "pointer-events-none opacity-50" : "")}
+                  >
+                    <span className="sr-only">Next page</span>
+                    <ChevronRight className="size-4" aria-hidden="true" />
+                  </PaginationLink>
+                </PaginationItem>
+
+                <PaginationItem>
+                  <PaginationLink
+                    href={hrefWithParam("page", String(totalPages))}
+                    isActive={false}
+                    size="sm"
+                    aria-label="Last page"
+                    aria-disabled={page >= totalPages}
+                    className={cn(page >= totalPages ? "pointer-events-none opacity-50" : "")}
+                  >
+                    <span className="sr-only">Last page</span>
+                    <ChevronsRight className="size-4" aria-hidden="true" />
+                  </PaginationLink>
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
           </div>
         }
       />
