@@ -11,50 +11,50 @@ export default function Home() {
           Next.js Users Workspace
         </p>
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-          Jelajahi data users dengan cepat dan rapi.
+          Explore users quickly and clearly.
         </h1>
         <p className="max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
-          Halaman <span className="font-medium text-foreground">Users</span>{" "}
-          menyediakan pencarian, filter, sort, pagination, dan ringkasan aktivitas
-          (posts/todos) dalam tampilan datatable yang responsif.
+          The <span className="font-medium text-foreground">Users</span> page
+          includes search, filters, sorting, pagination, and activity signals
+          (posts/todos) in a responsive datatable layout.
         </p>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <Link href="/users" className={buttonVariants({ variant: "default" })}>
-            Buka Users
+            Open Users
           </Link>
           <Link
             href="/users?sort=pending-desc"
             className={cn(buttonVariants({ variant: "outline" }), "text-center")}
           >
-            Lihat yang paling banyak pending
+            View most pending
           </Link>
         </div>
       </header>
 
       <section className="grid gap-4 sm:grid-cols-2">
         <div className="rounded-xl border bg-card p-5">
-          <div className="text-sm font-semibold">Cari</div>
+          <div className="text-sm font-semibold">Search</div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Filter by name/email dengan hasil instan.
+            Filter by name/email with instant results.
           </p>
         </div>
         <div className="rounded-xl border bg-card p-5">
           <div className="text-sm font-semibold">Filter</div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Fokus ke user yang masih punya pending todos.
+            Focus on users with pending todos.
           </p>
         </div>
         <div className="rounded-xl border bg-card p-5">
           <div className="text-sm font-semibold">Sort</div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Urutkan berdasarkan nama atau pending terbanyak.
+            Sort by id, name, email, website, or most pending.
           </p>
         </div>
         <div className="rounded-xl border bg-card p-5">
           <div className="text-sm font-semibold">Pagination</div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Navigasi halaman dengan angka + chevron, dan atur jumlah baris.
+            Navigate pages with numbers + chevrons, and adjust rows per page.
           </p>
         </div>
       </section>

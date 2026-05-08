@@ -276,7 +276,7 @@ export function UsersClient({
               variant={filter === "has-pending" ? "secondary" : "outline"}
               onClick={() => setParam("filter", filter === "has-pending" ? "all" : "has-pending")}
             >
-              Pending todos
+              Has pending todos
             </Button>
           </div>
         </div>

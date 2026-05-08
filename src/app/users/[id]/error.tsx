@@ -13,7 +13,7 @@ export default function UserDetailsError({
     <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-4 px-4 py-8">
       <h1 className="text-2xl font-semibold tracking-tight">User</h1>
       <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-6 text-sm text-destructive">
-        <p className="font-medium">Terjadi error saat memuat detail user.</p>
+        <p className="font-medium">Something went wrong while loading user details.</p>
         <p className="mt-2 text-xs opacity-80">{error.message}</p>
         <div className="mt-4 flex flex-wrap gap-3">
           <button
@@ -21,13 +21,13 @@ export default function UserDetailsError({
             className="underline underline-offset-4"
             onClick={() => reset()}
           >
-            Coba lagi
+            Try again
           </button>
           <Link
             href="/users"
             className="underline underline-offset-4 opacity-90 hover:opacity-100"
           >
-            Kembali ke list
+            Back to list
           </Link>
         </div>
       </div>

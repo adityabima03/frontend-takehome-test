@@ -26,7 +26,7 @@ export async function generateMetadata({
     const user = await getUser(userId, { revalidateSeconds: 60 });
     return {
       title: `${user.name} · User`,
-      description: `Detail user ${user.name} (${user.username})`,
+      description: `User details for ${user.name} (@${user.username})`,
     };
   } catch {
     return { title: "User" };
