@@ -3,7 +3,7 @@
 import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
 
-import type { UserRow } from "@/app/users/users-client";
+import type { UserRow, UsersSortMode } from "@/components/users/types";
 import { Button } from "@/components/ui/button";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 
@@ -14,16 +14,7 @@ export function createUsersColumns(params: {
   onToggleEmailSort: () => void;
   onToggleWebsiteSort: () => void;
   onTogglePendingSort: () => void;
-  activeSort:
-    | "id-asc"
-    | "id-desc"
-    | "name-asc"
-    | "name-desc"
-    | "email-asc"
-    | "email-desc"
-    | "website-asc"
-    | "website-desc"
-    | "pending-desc";
+  activeSort: UsersSortMode;
 }): ColumnDef<UserRow>[] {
   const idIcon =
     params.activeSort === "id-asc" ? (
