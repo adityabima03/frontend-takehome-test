@@ -23,8 +23,9 @@ Buka `http://localhost:3000`.
 ## Scripts
 
 ```bash
-pnpm dev
-pnpm build
+pnpm dev          # development server (hot reload)
+pnpm build        # production build
+pnpm start        # production server — jalankan setelah `pnpm build`, port default 3000
 pnpm test
 pnpm test:e2e
 ```
