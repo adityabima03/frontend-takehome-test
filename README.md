@@ -26,6 +26,15 @@ Buka `http://localhost:3000`.
 pnpm dev
 pnpm build
 pnpm test
+pnpm test:e2e
+```
+
+## E2E (Playwright)
+
+Install browser dependency 
+
+```bash
+pnpm dlx playwright install
 ```
 
 ## Routes
