@@ -34,7 +34,7 @@ pnpm test:e2e
 Install browser dependency 
 
 ```bash
-pnpm dlx playwright install chromium
+pnpm dlx playwright install
 ```
 
 ## Routes
