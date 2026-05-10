@@ -45,6 +45,7 @@ pnpm dlx playwright install
 
 ## Fitur `/users`
 
+- **Navigasi ke detail user:** pada tabel desktop, buka `/users/[id]` dengan mengklik **nama** di kolom **Name** (bukan seluruh baris). Pada mobile, ketuk kartu user — seluruh kartu mengarah ke halaman detail yang sama.
 - Fetch users dari `https://jsonplaceholder.typicode.com/users`
 - Enrich activity signals dari:
   - `https://jsonplaceholder.typicode.com/posts`
